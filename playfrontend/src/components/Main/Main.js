@@ -22,7 +22,7 @@ import "./Main.css";
 class Main extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { url: "", isLoading: false };
+    this.state = { url: "", isLoading: false, validated: false, errors: [] };
 
     this.handleSubmit = this.handleSubmit.bind(this);
   }
@@ -32,22 +32,36 @@ class Main extends React.Component {
   }
 
   handleSubmit(event) {
-    const youtubeURL = this.state.url;
+    event.preventDefault();
+
+    //VALIDATE
+    var errors = [];
+    //URL
+    const youtubeURL = this.state.url.toLowerCase;
     const pos = youtubeURL.search("\\?");
-    if (pos !== -1) {
+    const youtubePos = youtubeURL.search("youtube");
+    this.setState({ isLoading: true });
+    if (pos == -1 && youtubePos == -1) {
+      errors.push("url");
+    }
+
+    this.setState({
+      errors: errors,
+    });
+
+    if (errors.length > 0) {
+      return false;
+    } else {
       this.setState({ isLoading: true });
       console.log(this.state.isLoading);
       const len = youtubeURL.length;
       const playURL = youtubeURL.slice(pos, len);
       console.log(playURL); //TODO: submit to server
-      const timer = setTimeout(() => {}, 1000);
-      this.setState({ isLoading: false });
     }
-    event.preventDefault();
   }
 
   render() {
-    const { isLoading } = this.state;
+    const { isLoading, validated } = this.state;
 
     return (
       <div className="container">
@@ -57,29 +71,43 @@ class Main extends React.Component {
         </div>
 
         <div className="center">
-          <InputGroup size="lg">
-            <InputGroup.Prepend>
-              <InputGroup.Text id="inputGroup-sizing-lg">
-                Youtube
-              </InputGroup.Text>
-            </InputGroup.Prepend>
-            <FormControl
-              disabled={isLoading}
-              aria-label="Large"
-              aria-describedby="inputGroup-sizing-sm"
-              placeholder="URL"
-              onChange={(e) => this.setState({ url: e.target.value })}
-            />
-            <InputGroup.Append>
-              <Button
-                variant="info"
+          <Form
+            validated={validated}
+            onSubmit={!isLoading ? this.handleSubmit : null}
+          >
+            <InputGroup size="lg">
+              <InputGroup.Prepend>
+                <InputGroup.Text id="inputGroup-sizing-lg">
+                  Youtube
+                </InputGroup.Text>
+              </InputGroup.Prepend>
+              <FormControl
                 disabled={isLoading}
-                onClick={!isLoading ? this.handleSubmit : null}
-              >
-                {isLoading ? <Spinner animation="border" size="sm" /> : "Play"}
-              </Button>
-            </InputGroup.Append>
-          </InputGroup>
+                aria-label="Large"
+                aria-describedby="inputGroup-sizing-sm"
+                placeholder="URL"
+                controlId="validationURL"
+                onChange={(e) => this.setState({ url: e.target.value })}
+              />
+              <Form.Control.Feedback type="invalid">
+                Please enter a valid youtube URL.
+              </Form.Control.Feedback>
+              <InputGroup.Append>
+                <Button
+                  variant="info"
+                  type="submit"
+                  disabled={isLoading}
+                  onClick={!isLoading ? this.handleSubmit : null}
+                >
+                  {isLoading ? (
+                    <Spinner animation="border" size="sm" />
+                  ) : (
+                    "Play"
+                  )}
+                </Button>
+              </InputGroup.Append>
+            </InputGroup>
+          </Form>
         </div>
       </div>
     );
